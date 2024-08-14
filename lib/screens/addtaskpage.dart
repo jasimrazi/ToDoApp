@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:todoapp/provider/database_provider.dart';
 import 'package:todoapp/provider/task_provider.dart';
 import 'package:todoapp/widgets/customappbar.dart';
 import 'package:todoapp/widgets/customelevatedbutton.dart';
@@ -11,6 +13,12 @@ class AddTask extends StatelessWidget {
   TextEditingController _detail = TextEditingController();
 
   @override
+  String getCurrentTime() {
+    final now = DateTime.now();
+    final formatter = DateFormat('h:mm a');
+    return formatter.format(now);
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: 'Add Task'),
@@ -46,8 +54,11 @@ class AddTask extends StatelessWidget {
             CustomElevatedButton(
                 title: 'ADD',
                 onPressed: () {
-                  context.read<TaskProvider>().addTask(
-                      product: {'title': _title.text, 'detail': _detail.text});
+                  context.read<DBServiceProvider>().addData({
+                    'title': _title.text,
+                    'detail': _detail.text,
+                    'time': getCurrentTime(),
+                  });
                   Navigator.pop(context);
                 })
           ],

@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:todoapp/provider/database_provider.dart';
 import 'package:todoapp/provider/task_provider.dart';
 import 'package:todoapp/screens/addtaskpage.dart';
 import 'package:todoapp/screens/edittaskpage.dart';
 import 'package:todoapp/utils/contants.dart';
 import 'package:provider/provider.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DBServiceProvider>().getData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +46,11 @@ class HomePage extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => AddTask(),
-              ));
+              )).then(
+            (value) {
+              context.read<DBServiceProvider>().getData();
+            },
+          );
         },
         child: Icon(
           Icons.add,
@@ -40,20 +59,22 @@ class HomePage extends StatelessWidget {
         shape: CircleBorder(),
         backgroundColor: kPrimary,
       ),
-      body: Consumer<TaskProvider>(builder: (context, taskprovider, child) {
+      body: Consumer<DBServiceProvider>(
+          builder: (context, dbserviceprovider, child) {
         return ListView.builder(
-          itemCount: taskprovider.tasklist.length,
+          itemCount: dbserviceprovider.taskdata.length,
           itemBuilder: (context, index) {
+            List tasks = dbserviceprovider.taskdata;
             return Card(
               margin:
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
               elevation: 3,
               child: ListTile(
                 title: Text(
-                  taskprovider.tasklist[index]['title'],
+                  tasks[index]['title'],
                   style: TextStyle(color: kPrimary),
                 ),
-                subtitle: Text(taskprovider.tasklist[index]['detail']),
+                subtitle: Text(tasks[index]['detail']),
                 trailing: Container(
                   width: 150,
                   child: Row(
@@ -63,7 +84,9 @@ class HomePage extends StatelessWidget {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => EditTask(index: index,),
+                                  builder: (context) => EditTask(
+                                    index: index,
+                                  ),
                                 ));
                           },
                           icon: Icon(
@@ -72,29 +95,18 @@ class HomePage extends StatelessWidget {
                           )),
                       IconButton(
                           onPressed: () {
-                            context.read<TaskProvider>().removeTask(
-                                product: taskprovider.tasklist[index]);
+                            context
+                                .read<DBServiceProvider>()
+                                .removeData(tasks[index]['id']);
                           },
                           icon: Icon(
                             Icons.delete_outline,
                             color: kPrimary,
                           )),
                       IconButton(
-                        onPressed: () {
-                          if (context.read<TaskProvider>().isCompleted(
-                              taskprovider.tasklist[index]['title'])) {
-                            context.read<TaskProvider>().removeCompleted(
-                                product: taskprovider.tasklist[index]);
-                          } else {
-                            context.read<TaskProvider>().addCompleted(
-                                product: taskprovider.tasklist[index]);
-                          }
-                        },
+                        onPressed: () {},
                         icon: Icon(
-                          context.read<TaskProvider>().isCompleted(
-                                  taskprovider.tasklist[index]['title'])
-                              ? Icons.check_circle
-                              : Icons.check_circle_outline_outlined,
+                          Icons.check_circle_outline_outlined,
                           color: kPrimary,
                         ),
                       ),
